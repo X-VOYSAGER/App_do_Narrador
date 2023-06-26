@@ -18,6 +18,8 @@ import * as Speech from "expo-speech";
 import * as Font from "expo-font";
 
 import * as SplashScreen from 'expo-splash-screen';
+import firebase from "firebase";
+
 SplashScreen.preventAutoHideAsync();
 
 let customFonts = {
@@ -30,7 +32,8 @@ export default class StoryScreen extends Component {
     this.state = {
       fontsLoaded: false,
       speakerColor: "gray",
-      speakerIcon: "volume-high-outline"
+      speakerIcon: "volume-high-outline",
+      light_theme: true
     };
   }
 
@@ -38,9 +41,20 @@ export default class StoryScreen extends Component {
     await Font.loadAsync(customFonts);
     this.setState({ fontsLoaded: true });
   }
-
+  fetchUser = async () => {
+    var theme
+    await firebase.database().ref("/users/" + firebase.auth().currentUser.uid)
+      .on("value", (snapshot) => {
+        theme = snapshot.val().current_theme
+      })
+    this.setState({
+      light_theme: theme == "light" ? true : false,
+    })
+  }
+  //this.setState.light_theme ?:
   componentDidMount() {
     this._loadFontsAsync();
+    this.fetchUser()
   }
 
   async initiateTTS(title, author, story, moral) {
@@ -64,7 +78,7 @@ export default class StoryScreen extends Component {
     } else if (this.state.fontsLoaded) {
       SplashScreen.hideAsync();
       return (
-        <View style={styles.container}>
+        <View style={this.setState.light_theme ? styles.containerLight : styles.container}>
           <SafeAreaView style={styles.droidSafeArea} />
           <View style={styles.appTitle}>
             <View style={styles.appIcon}>
@@ -74,11 +88,11 @@ export default class StoryScreen extends Component {
               ></Image>
             </View>
             <View style={styles.appTitleTextContainer}>
-              <Text style={styles.appTitleText}>Storytelling App</Text>
+              <Text style={this.setState.light_theme ? styles.appTitleTextLight : styles.appTitleText}>Storytelling App</Text>
             </View>
           </View>
           <View style={styles.storyContainer}>
-            <ScrollView style={styles.storyCard}>
+            <ScrollView style={this.setState.light_theme ? styles.story : styles.storyCard}>
               <Image
                 source={require("../assets/story_image_1.png")}
                 style={styles.image}
@@ -86,13 +100,13 @@ export default class StoryScreen extends Component {
 
               <View style={styles.dataContainer}>
                 <View style={styles.titleTextContainer}>
-                  <Text style={styles.storyTitleText}>
+                  <Text style={this.setState.light_theme ? styles.storyTitleTextLight : styles.storyTitleText}>
                     {this.props.route.params.story.title}
                   </Text>
-                  <Text style={styles.storyAuthorText}>
+                  <Text style={this.setState.light_theme ? styles.storyAuthorTextLight : styles.storyAuthorText}>
                     {this.props.route.params.story.author}
                   </Text>
-                  <Text style={styles.storyAuthorText}>
+                  <Text style={this.setState.light_theme ? styles.storyAuthorTextLight : styles.storyAuthorText}>
                     {this.props.route.params.story.created_on}
                   </Text>
                 </View>
@@ -117,17 +131,17 @@ export default class StoryScreen extends Component {
                 </View>
               </View>
               <View style={styles.storyTextContainer}>
-                <Text style={styles.storyText}>
+                <Text style={this.setState.light_theme ? storyTextLight : styles.storyText}>
                   {this.props.route.params.story.story}
                 </Text>
-                <Text style={styles.moralText}>
+                <Text style={this.setState.light_theme ? styles.moralTextLight : styles.moralText}>
                   Moral - {this.props.route.params.story.moral}
                 </Text>
               </View>
               <View style={styles.actionContainer}>
                 <View style={styles.likeButton}>
                   <Ionicons name={"heart"} size={RFValue(30)} color={"white"} />
-                  <Text style={styles.likeText}>12k</Text>
+                  <Text style={this.setState.light_theme ? styles.likeTextLight : styles.likeText}>12k</Text>
                 </View>
               </View>
             </ScrollView>
@@ -142,6 +156,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#15193c"
+  },
+  containerLight: {
+    flex: 1,
+    backgroundColor: "white"
   },
   droidSafeArea: {
     marginTop: Platform.OS === "android" ? StatusBar.currentHeight : RFValue(35)
@@ -169,6 +187,11 @@ const styles = StyleSheet.create({
     fontSize: RFValue(28),
     fontFamily: "Bubblegum-Sans"
   },
+  appTitleTextLight: {
+    color: "black",
+    fontSize: RFValue(28),
+    fontFamily: "Bubblegum-Sans"
+  },
   storyContainer: {
     flex: 1
   },
@@ -176,6 +199,19 @@ const styles = StyleSheet.create({
     margin: RFValue(20),
     backgroundColor: "#2f345d",
     borderRadius: RFValue(20)
+  },
+  storyCardLight: {
+    margin: RFValue(20),
+    backgroundColor: "white",
+    borderRadius: RFValue(20),
+    shadowColor: "rgb(0, 0, 0)",
+    shadowOffset: {
+      width: 3,
+      height: 3
+    },
+    shadowOpacity: 0.5,
+    shadowRadius: 5,
+    elevation: 2
   },
   image: {
     width: "100%",
@@ -197,10 +233,20 @@ const styles = StyleSheet.create({
     fontSize: RFValue(25),
     color: "white"
   },
+  storyTitleTextLight: {
+    fontFamily: "Bubblegum-Sans",
+    fontSize: RFValue(25),
+    color: "black"
+  },
   storyAuthorText: {
     fontFamily: "Bubblegum-Sans",
     fontSize: RFValue(18),
     color: "white"
+  },
+  storyAuthorTextLight: {
+    fontFamily: "Bubblegum-Sans",
+    fontSize: RFValue(18),
+    color: "black"
   },
   iconContainer: {
     flex: 0.2
@@ -213,10 +259,20 @@ const styles = StyleSheet.create({
     fontSize: RFValue(15),
     color: "white"
   },
+  storyTextLight: {
+    fontFamily: "Bubblegum-Sans",
+    fontSize: RFValue(15),
+    color: "black"
+  },
   moralText: {
     fontFamily: "Bubblegum-Sans",
     fontSize: RFValue(20),
     color: "white"
+  },
+  moralTextLight: {
+    fontFamily: "Bubblegum-Sans",
+    fontSize: RFValue(20),
+    color: "black"
   },
   actionContainer: {
     justifyContent: "center",
@@ -234,6 +290,11 @@ const styles = StyleSheet.create({
   },
   likeText: {
     color: "white",
+    fontFamily: "Bubblegum-Sans",
+    fontSize: RFValue(25),
+    marginLeft: RFValue(5)
+  },
+  likeTextLight: {
     fontFamily: "Bubblegum-Sans",
     fontSize: RFValue(25),
     marginLeft: RFValue(5)
