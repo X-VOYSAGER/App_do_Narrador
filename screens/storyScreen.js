@@ -77,6 +77,13 @@ export default class StoryScreen extends Component {
       this.props.navigation.navigate("Home");
     } else if (this.state.fontsLoaded) {
       SplashScreen.hideAsync();
+      var preview_Image = {
+        image_1: require("../assets/story_image_1.png"),
+        image_2: require("../assets/story_image_2.png"),
+        image_3: require("../assets/story_image_3.png"),
+        image_4: require("../assets/story_image_4.png"),
+        image_5: require("../assets/story_image_5.png"),
+    } 
       return (
         <View style={this.setState.light_theme ? styles.containerLight : styles.container}>
           <SafeAreaView style={styles.droidSafeArea} />
@@ -94,7 +101,7 @@ export default class StoryScreen extends Component {
           <View style={styles.storyContainer}>
             <ScrollView style={this.setState.light_theme ? styles.story : styles.storyCard}>
               <Image
-                source={require("../assets/story_image_1.png")}
+                 source={preview_Image[this.props.route.params.story.preview_image]}
                 style={styles.image}
               ></Image>
 
