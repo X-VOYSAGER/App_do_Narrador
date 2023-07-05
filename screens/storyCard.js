@@ -28,8 +28,28 @@ export default class StoryCard extends Component {
       fontsLoaded: false,
       light_theme: true,
       story_id: this.props.story.key,
-      story_data:this.props.story.value
+      story_data: this.props.story.value,
+      is_liked: false,
+      likes: this.props.story.value.likes
     };
+  }
+
+  likeAction = () => {
+    if (this.state.is_liked) {
+      firebase.database().ref("posts").child(this.state.story_id).child("likes").set(firebase.database.ServerValue.increment(-1))
+      this.setState({
+        likes: this.state.likes -= 1,
+        is_liked: false
+      })
+    } else {
+      firebase.database().ref("posts").child(this.state.story_id).child("likes").set(firebase.database.ServerValue.increment(1))
+      this.setState({
+        likes: this.state.likes += 1,
+        is_liked: true
+      })
+    }
+
+
   }
 
   async _loadFontsAsync() {
@@ -62,7 +82,7 @@ export default class StoryCard extends Component {
         image_3: require("../assets/story_image_3.png"),
         image_4: require("../assets/story_image_4.png"),
         image_5: require("../assets/story_image_5.png"),
-    } 
+      }
       return (
         <TouchableOpacity style={styles.container} onPress={
           () => { this.props.navigation.navigate("StoryScreen", { story: story, story_id: this.state.story_id }) }
@@ -85,10 +105,11 @@ export default class StoryCard extends Component {
               </Text>
             </View>
             <View style={styles.actionContainer}>
-              <View style={styles.likeButton}>
-                <Ionicons name={"heart"} size={RFValue(30)} color={"white"} />
-                <Text style={this.setState.light_theme ? styles.likeTextLight : styles.likeText}>12k</Text>
-              </View>
+              <TouchableOpacity onPress={() => { this.likeAction() }}
+                style={this.state.is_liked ? styles.likeButtonLiked : styles.likeButtonDisliked}>
+                <Ionicons name={"heart"} size={RFValue(30)} color={this.state.light_theme ? "black" : "white"} />
+                <Text style={this.setState.light_theme ? styles.likeTextLight : styles.likeText}>{this.state.likes}</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </TouchableOpacity>
@@ -193,5 +214,37 @@ const styles = StyleSheet.create({
     fontFamily: "Bubblegum-Sans",
     fontSize: RFValue(25),
     marginLeft: RFValue(5)
+  },
+  likeButtonLiked: {
+    width: RFValue(160),
+    height: RFValue(40),
+    justifyContent: "center",
+    alignItems: "center",
+    flexDirection: "row",
+    backgroundColor: "#eb3948",
+    borderRadius: RFValue(30)
+  },
+  likeButtonDisliked: {
+    width: RFValue(160),
+    height: RFValue(40),
+    justifyContent: "center",
+    alignItems: "center",
+    flexDirection: "row",
+    borderColor: "#eb3948",
+    borderWidth: 2,
+    borderRadius: RFValue(30)
+  },
+  likeText: {
+    color: "white",
+    fontFamily: "Bubblegum-Sans",
+    fontSize: 25,
+    marginLeft: 25,
+    marginTop: 6
+  },
+  likeTextLight: {
+    fontFamily: "Bubblegum-Sans",
+    fontSize: 25,
+    marginLeft: 25,
+    marginTop: 6
   }
 });
